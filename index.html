@@ -652,7 +652,7 @@
         }
 
         const data = await response.json();
-        renderGrammarResults(textToCheck, data.matches || []);
+        await renderGrammarResults(textToCheck, data.matches || []);
         showMessage('添削が完了しました', 'success', '✓');
       } catch (error) {
         console.error('添削エラー:', error);
@@ -663,36 +663,49 @@
       }
     }
 
-    function renderGrammarResults(text, matches) {
+    async function renderGrammarResults(text, matches) {
       const resultsPanel = document.getElementById('grammarResults');
       const listEl = document.getElementById('grammarList');
       listEl.innerHTML = '';
 
       if (matches.length === 0) {
         listEl.innerHTML = '<div class="grammar-empty">✅ 問題は見つかりませんでした！自然な英文です。</div>';
-      } else {
-        matches.forEach(match => {
-          const original = text.substring(match.offset, match.offset + match.length);
-          const suggestions = (match.replacements || [])
-            .slice(0, 3)
-            .map(r => r.value)
-            .filter(v => v);
-
-          const item = document.createElement('div');
-          item.className = 'grammar-item';
-
-          let html = '<div class="grammar-item-text">';
-          html += `<span class="grammar-original">${escapeHtml(original)}</span>`;
-          if (suggestions.length > 0) {
-            html += ` → <span class="grammar-suggestion">${escapeHtml(suggestions.join(' / '))}</span>`;
-          }
-          html += '</div>';
-          html += `<div class="grammar-message">${escapeHtml(match.message)}</div>`;
-
-          item.innerHTML = html;
-          listEl.appendChild(item);
-        });
+        resultsPanel.classList.add('show');
+        return;
       }
+
+      // 添削メッセージを日本語に翻訳（並行実行）
+      const translations = await Promise.all(
+        matches.map(match => translateWithAPI(match.message, 'en', 'ja'))
+      );
+
+      matches.forEach((match, index) => {
+        const original = text.substring(match.offset, match.offset + match.length);
+        const suggestions = (match.replacements || [])
+          .slice(0, 3)
+          .map(r => r.value)
+          .filter(v => v);
+
+        const item = document.createElement('div');
+        item.className = 'grammar-item';
+
+        let html = '<div class="grammar-item-text">';
+        html += `<span class="grammar-original">${escapeHtml(original)}</span>`;
+        if (suggestions.length > 0) {
+          html += ` → <span class="grammar-suggestion">${escapeHtml(suggestions.join(' / '))}</span>`;
+        }
+        html += '</div>';
+
+        const translationResult = translations[index];
+        const messageText = (translationResult && translationResult.success)
+          ? translationResult.translation
+          : match.message;
+
+        html += `<div class="grammar-message">${escapeHtml(messageText)}</div>`;
+
+        item.innerHTML = html;
+        listEl.appendChild(item);
+      });
 
       resultsPanel.classList.add('show');
     }
