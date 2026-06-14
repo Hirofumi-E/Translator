@@ -295,6 +295,96 @@
       color: var(--text-primary);
     }
 
+    /* 英語添削機能 */
+    .check-section {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .check-btn {
+      padding: 12px 28px;
+      border: 2px solid var(--border);
+      background: var(--bg-white);
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--text-primary);
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .check-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .check-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .grammar-results {
+      display: none;
+      margin-bottom: 20px;
+    }
+
+    .grammar-results.show {
+      display: block;
+    }
+
+    .grammar-results-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+    }
+
+    .grammar-item {
+      background: var(--bg-light);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--primary);
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 10px;
+    }
+
+    .grammar-item-text {
+      font-size: 14px;
+      margin-bottom: 6px;
+      line-height: 1.6;
+    }
+
+    .grammar-original {
+      color: var(--danger);
+      text-decoration: line-through;
+    }
+
+    .grammar-suggestion {
+      color: var(--success);
+      font-weight: 600;
+    }
+
+    .grammar-message {
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .grammar-empty {
+      text-align: center;
+      padding: 20px;
+      color: var(--success);
+      font-size: 14px;
+      font-weight: 600;
+      background: var(--bg-light);
+      border-radius: 8px;
+    }
+
     @media (max-width: 768px) {
       .translation-area {
         grid-template-columns: 1fr;
@@ -393,12 +483,22 @@
           <textarea id="outputText" readonly placeholder="翻訳結果がここに表示されます..."></textarea>
         </div>
       </div>
+
+      <div class="check-section">
+        <button class="check-btn" onclick="checkEnglish()" id="checkBtn">📝 英文を添削する</button>
+      </div>
+
+      <div class="grammar-results" id="grammarResults">
+        <div class="grammar-results-title">添削結果</div>
+        <div id="grammarList"></div>
+      </div>
     </div>
 
     <div class="footer">
-      <strong>✨ 特徴:</strong> 完全無料 • 自動翻訳 • インストール不要 • プライバシー保護<br>
-      <strong>💡 使い方:</strong> テキストを入力すると自動で翻訳されます。または「Ctrl+Enter」で手動翻訳も可能です。<br>
-      <strong>🔒 プライバシー:</strong> 翻訳エンジンはGoogle翻訳のみを使用しています。
+      <strong>✨ 特徴:</strong> 完全無料 • 自動翻訳 • 英文添削 • インストール不要<br>
+      <strong>💡 使い方:</strong> テキストを入力すると自動で翻訳されます。「Ctrl+Enter」で手動翻訳も可能です。<br>
+      <strong>📝 英文添削:</strong> 英語のテキスト（入力または翻訳結果）がある時、「英文を添削する」ボタンで文法・表現チェックができます。<br>
+      <strong>🔒 プライバシー:</strong> 翻訳エンジンはGoogle翻訳、添削はLanguageToolを使用しています。
     </div>
   </div>
 
@@ -510,6 +610,97 @@
           translation: text
         };
       }
+    }
+
+    // ===== 英語添削機能（LanguageTool API） =====
+
+    async function checkEnglish() {
+      const inputText = document.getElementById('inputText').value.trim();
+      const outputText = document.getElementById('outputText').value.trim();
+      const checkBtn = document.getElementById('checkBtn');
+
+      // 入力・出力のうち、英語の方を対象にする
+      let textToCheck = '';
+      if (inputText && detectLanguage(inputText) === 'en') {
+        textToCheck = inputText;
+      } else if (outputText && detectLanguage(outputText) === 'en') {
+        textToCheck = outputText;
+      }
+
+      if (!textToCheck) {
+        showMessage('チェックする英文が見つかりません', 'error', '⚠');
+        return;
+      }
+
+      checkBtn.disabled = true;
+      checkBtn.textContent = 'チェック中...';
+
+      try {
+        const response = await fetch('https://api.languagetool.org/v2/check', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          body: new URLSearchParams({
+            text: textToCheck,
+            language: 'en-US'
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        renderGrammarResults(textToCheck, data.matches || []);
+        showMessage('添削が完了しました', 'success', '✓');
+      } catch (error) {
+        console.error('添削エラー:', error);
+        showMessage(`添削エラー: ${error.message}`, 'error', '✗');
+      } finally {
+        checkBtn.disabled = false;
+        checkBtn.textContent = '📝 英文を添削する';
+      }
+    }
+
+    function renderGrammarResults(text, matches) {
+      const resultsPanel = document.getElementById('grammarResults');
+      const listEl = document.getElementById('grammarList');
+      listEl.innerHTML = '';
+
+      if (matches.length === 0) {
+        listEl.innerHTML = '<div class="grammar-empty">✅ 問題は見つかりませんでした！自然な英文です。</div>';
+      } else {
+        matches.forEach(match => {
+          const original = text.substring(match.offset, match.offset + match.length);
+          const suggestions = (match.replacements || [])
+            .slice(0, 3)
+            .map(r => r.value)
+            .filter(v => v);
+
+          const item = document.createElement('div');
+          item.className = 'grammar-item';
+
+          let html = '<div class="grammar-item-text">';
+          html += `<span class="grammar-original">${escapeHtml(original)}</span>`;
+          if (suggestions.length > 0) {
+            html += ` → <span class="grammar-suggestion">${escapeHtml(suggestions.join(' / '))}</span>`;
+          }
+          html += '</div>';
+          html += `<div class="grammar-message">${escapeHtml(match.message)}</div>`;
+
+          item.innerHTML = html;
+          listEl.appendChild(item);
+        });
+      }
+
+      resultsPanel.classList.add('show');
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
     }
 
     function copyTranslation() {
