@@ -10,7 +10,7 @@
       padding: 0;
       box-sizing: border-box;
     }
- 
+
     :root {
       --primary: #5366ff;
       --primary-dark: #3d4fcf;
@@ -23,7 +23,7 @@
       --border: #e2e8f0;
       --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
     }
- 
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -33,7 +33,7 @@
       justify-content: center;
       padding: 20px;
     }
- 
+
     .container {
       width: 100%;
       max-width: 1000px;
@@ -42,31 +42,31 @@
       box-shadow: var(--shadow), 0 20px 40px rgba(0, 0, 0, 0.15);
       overflow: hidden;
     }
- 
+
     .header {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
       padding: 40px 30px;
       text-align: center;
     }
- 
+
     .header h1 {
       font-size: 32px;
       margin-bottom: 8px;
       font-weight: 700;
       letter-spacing: -0.5px;
     }
- 
+
     .header p {
       font-size: 16px;
       opacity: 0.95;
       font-weight: 400;
     }
- 
+
     .content {
       padding: 40px;
     }
- 
+
     .controls {
       display: flex;
       gap: 12px;
@@ -74,13 +74,13 @@
       align-items: center;
       flex-wrap: wrap;
     }
- 
+
     .language-group {
       display: flex;
       gap: 12px;
       align-items: center;
     }
- 
+
     .language-select {
       padding: 10px 14px;
       border: 2px solid var(--border);
@@ -92,17 +92,17 @@
       color: var(--text-primary);
       transition: all 0.3s ease;
     }
- 
+
     .language-select:hover {
       border-color: var(--primary);
     }
- 
+
     .language-select:focus {
       outline: none;
       border-color: var(--primary);
       box-shadow: 0 0 0 3px rgba(83, 102, 255, 0.1);
     }
- 
+
     .swap-btn {
       width: 40px;
       height: 40px;
@@ -117,24 +117,24 @@
       transition: all 0.3s ease;
       color: var(--text-secondary);
     }
- 
+
     .swap-btn:hover {
       border-color: var(--primary);
       color: var(--primary);
       transform: rotate(180deg);
     }
- 
+
     .flex-spacer {
       flex: 1;
       min-width: 100px;
     }
- 
+
     .auto-translate-toggle {
       display: flex;
       align-items: center;
       gap: 8px;
     }
- 
+
     .toggle-switch {
       width: 48px;
       height: 24px;
@@ -145,11 +145,11 @@
       position: relative;
       transition: all 0.3s ease;
     }
- 
+
     .toggle-switch.active {
       background: var(--success);
     }
- 
+
     .toggle-switch::after {
       content: '';
       position: absolute;
@@ -161,37 +161,37 @@
       left: 2px;
       transition: all 0.3s ease;
     }
- 
+
     .toggle-switch.active::after {
       left: 26px;
     }
- 
+
     .toggle-label {
       font-size: 13px;
       font-weight: 600;
       color: var(--text-secondary);
       white-space: nowrap;
     }
- 
+
     .translation-area {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 20px;
       margin-bottom: 20px;
     }
- 
+
     .column {
       display: flex;
       flex-direction: column;
     }
- 
+
     .column-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 12px;
     }
- 
+
     .column-label {
       font-size: 13px;
       font-weight: 700;
@@ -199,7 +199,7 @@
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
- 
+
     .copy-btn {
       padding: 6px 12px;
       background: var(--bg-light);
@@ -211,13 +211,13 @@
       color: var(--text-primary);
       transition: all 0.2s ease;
     }
- 
+
     .copy-btn:hover {
       background: var(--primary);
       color: white;
       border-color: var(--primary);
     }
- 
+
     textarea {
       flex: 1;
       padding: 16px;
@@ -232,19 +232,19 @@
       background: var(--bg-white);
       min-height: 250px;
     }
- 
+
     textarea:focus {
       outline: none;
       border-color: var(--primary);
       box-shadow: 0 0 0 3px rgba(83, 102, 255, 0.1);
     }
- 
+
     textarea:disabled {
       background: var(--bg-light);
       color: var(--text-secondary);
       cursor: not-allowed;
     }
- 
+
     .status-message {
       padding: 14px 16px;
       border-radius: 8px;
@@ -254,34 +254,34 @@
       align-items: center;
       gap: 12px;
     }
- 
+
     .status-message.show {
       display: flex;
     }
- 
+
     .status-message.success {
       background: #d1fae5;
       color: #065f46;
       border: 1px solid #a7f3d0;
     }
- 
+
     .status-message.error {
       background: #fee2e2;
       color: #991b1b;
       border: 1px solid #fecaca;
     }
- 
+
     .status-message.info {
       background: #dbeafe;
       color: #1e40af;
       border: 1px solid #bfdbfe;
     }
- 
+
     .status-icon {
       flex-shrink: 0;
       font-size: 18px;
     }
- 
+
     .footer {
       padding: 24px 40px;
       background: var(--bg-light);
@@ -290,45 +290,45 @@
       color: var(--text-secondary);
       line-height: 1.6;
     }
- 
+
     .footer strong {
       color: var(--text-primary);
     }
- 
+
     @media (max-width: 768px) {
       .translation-area {
         grid-template-columns: 1fr;
       }
- 
+
       .header {
         padding: 30px 20px;
       }
- 
+
       .header h1 {
         font-size: 24px;
       }
- 
+
       .content {
         padding: 24px;
       }
- 
+
       .controls {
         flex-direction: column;
       }
- 
+
       .language-group {
         width: 100%;
       }
- 
+
       .language-select {
         flex: 1;
       }
- 
+
       textarea {
         min-height: 200px;
       }
     }
- 
+
     @media (prefers-color-scheme: dark) {
       :root {
         --bg-light: #1e293b;
@@ -346,13 +346,13 @@
       <h1>🌍 無料翻訳アプリ</h1>
       <p>完全無料 • 自動翻訳 • インストール不要</p>
     </div>
- 
+
     <div class="content">
       <div id="statusMessage" class="status-message">
         <div class="status-icon">✓</div>
         <span id="statusText">完了しました</span>
       </div>
- 
+
       <div class="controls">
         <div class="language-group">
           <select id="sourceLang" class="language-select" onchange="scheduleTranslate()">
@@ -368,15 +368,15 @@
             <option value="en">English に翻訳</option>
           </select>
         </div>
- 
+
         <div class="flex-spacer"></div>
- 
+
         <div class="auto-translate-toggle">
           <label class="toggle-label">自動翻訳</label>
           <button class="toggle-switch active" id="autoTranslateToggle" onclick="toggleAutoTranslate()"></button>
         </div>
       </div>
- 
+
       <div class="translation-area">
         <div class="column">
           <div class="column-header">
@@ -384,7 +384,7 @@
           </div>
           <textarea id="inputText" placeholder="翻訳したいテキストをここに貼り付けてください..." oninput="scheduleTranslate()"></textarea>
         </div>
- 
+
         <div class="column">
           <div class="column-header">
             <label class="column-label">翻訳結果</label>
@@ -394,68 +394,69 @@
         </div>
       </div>
     </div>
- 
+
     <div class="footer">
       <strong>✨ 特徴:</strong> 完全無料 • 自動翻訳 • インストール不要 • プライバシー保護<br>
-      <strong>💡 使い方:</strong> テキストを入力すると自動で翻訳されます。または「Ctrl+Enter」で手動翻訳も可能です。
+      <strong>💡 使い方:</strong> テキストを入力すると自動で翻訳されます。または「Ctrl+Enter」で手動翻訳も可能です。<br>
+      <strong>🔒 プライバシー:</strong> 翻訳エンジンはGoogle翻訳のみを使用しています。
     </div>
   </div>
- 
+
   <script>
     let isTranslating = false;
     let autoTranslateEnabled = true;
     let translateTimeout = null;
     let lastTranslatedText = '';
- 
+
     function detectLanguage(text) {
       const japaneseRegex = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF\u3400-\u4DBF]/g;
       const japaneseMatches = text.match(japaneseRegex) || [];
       
       const englishRegex = /[a-zA-Z]/g;
       const englishMatches = text.match(englishRegex) || [];
- 
+
       if (japaneseMatches.length > englishMatches.length / 2) {
         return 'ja';
       }
       return 'en';
     }
- 
+
     function scheduleTranslate() {
       if (!autoTranslateEnabled) return;
- 
+
       if (translateTimeout) {
         clearTimeout(translateTimeout);
       }
- 
+
       translateTimeout = setTimeout(() => {
         handleTranslate();
       }, 500);
     }
- 
+
     async function handleTranslate() {
       const inputText = document.getElementById('inputText').value.trim();
       const sourceLanguage = document.getElementById('sourceLang').value;
       const targetLanguage = document.getElementById('targetLang').value;
- 
+
       if (!inputText) {
         document.getElementById('outputText').value = '';
         return;
       }
- 
+
       if (inputText === lastTranslatedText && !isTranslating) {
         return;
       }
- 
+
       if (sourceLanguage !== 'auto' && sourceLanguage === targetLanguage) {
         return;
       }
- 
+
       isTranslating = true;
- 
+
       try {
         let sourceLang = sourceLanguage;
         let actualTargetLang = targetLanguage;
- 
+
         if (sourceLanguage === 'auto') {
           sourceLang = detectLanguage(inputText);
           // 入力言語と翻訳先言語が同じ場合、翻訳先を自動的に反対の言語に切り替える
@@ -463,9 +464,9 @@
             actualTargetLang = (sourceLang === 'ja') ? 'en' : 'ja';
           }
         }
- 
+
         const result = await translateWithAPI(inputText, sourceLang, actualTargetLang);
- 
+
         if (result.success) {
           document.getElementById('outputText').value = result.translation;
           lastTranslatedText = inputText;
@@ -479,54 +480,30 @@
         isTranslating = false;
       }
     }
- 
+
     async function translateWithAPI(text, sourceLang, targetLang) {
-      // 方法1: Google Translate（非公式・CORS対応エンドポイント）
       try {
         const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sourceLang}&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`;
- 
+
         const response = await fetch(url);
- 
-        if (response.ok) {
-          const data = await response.json();
-          // data[0] は [[翻訳文, 元文, ...], ...] の配列
-          if (data && data[0]) {
-            const translation = data[0].map(item => item[0]).join('');
-            if (translation) {
-              return { success: true, translation };
-            }
-          }
-        }
-        throw new Error('Google Translate returned no data');
-      } catch (error) {
-        console.warn('Google Translate failed, trying MyMemory:', error.message);
-      }
- 
-      // 方法2: MyMemory（フォールバック）
-      try {
-        const langPair = `${sourceLang}|${targetLang}`;
-        const url = new URL('https://api.mymemory.translated.net/get');
-        url.searchParams.append('q', text);
-        url.searchParams.append('langpair', langPair);
- 
-        const response = await fetch(url.toString());
- 
+
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}`);
         }
- 
+
         const data = await response.json();
- 
-        if (data.responseStatus === 200 && data.responseData.translatedText) {
-          return {
-            success: true,
-            translation: data.responseData.translatedText
-          };
-        } else {
-          throw new Error('MyMemory returned error');
+
+        // data[0] は [[翻訳文, 元文, ...], ...] の配列
+        if (data && data[0]) {
+          const translation = data[0].map(item => item[0]).join('');
+          if (translation) {
+            return { success: true, translation };
+          }
         }
+
+        throw new Error('翻訳結果が取得できませんでした');
       } catch (error) {
-        console.error('All translation APIs failed:', error);
+        console.error('Translation Error:', error);
         return {
           success: false,
           error: error.message,
@@ -534,7 +511,7 @@
         };
       }
     }
- 
+
     function copyTranslation() {
       const outputText = document.getElementById('outputText').value;
       
@@ -542,7 +519,7 @@
         showMessage('コピーする内容がありません', 'error', '⚠');
         return;
       }
- 
+
       navigator.clipboard.writeText(outputText).then(() => {
         showMessage('クリップボードにコピーしました', 'success', '✓');
       }).catch((err) => {
@@ -550,28 +527,28 @@
         showMessage('コピーに失敗しました', 'error', '✗');
       });
     }
- 
+
     function swapLanguages() {
       const sourceLang = document.getElementById('sourceLang');
       const targetLang = document.getElementById('targetLang');
       const inputText = document.getElementById('inputText');
       const outputText = document.getElementById('outputText');
- 
+
       const temp = inputText.value;
       inputText.value = outputText.value;
       outputText.value = temp;
- 
+
       if (sourceLang.value !== 'auto') {
         const tempLang = sourceLang.value;
         sourceLang.value = targetLang.value;
         targetLang.value = tempLang;
       }
- 
+
       lastTranslatedText = '';
       scheduleTranslate();
       inputText.focus();
     }
- 
+
     function toggleAutoTranslate() {
       const toggle = document.getElementById('autoTranslateToggle');
       autoTranslateEnabled = !autoTranslateEnabled;
@@ -585,32 +562,31 @@
         showMessage('自動翻訳: OFF', 'info', '✗');
       }
     }
- 
+
     function showMessage(message, type = 'info', icon = 'ℹ') {
       const messageEl = document.getElementById('statusMessage');
       const statusText = document.getElementById('statusText');
       const statusIcon = messageEl.querySelector('.status-icon');
- 
+
       statusText.textContent = message;
       statusIcon.textContent = icon;
       messageEl.className = `status-message show ${type}`;
- 
+
       setTimeout(() => {
         messageEl.classList.remove('show');
       }, 3000);
     }
- 
+
     document.getElementById('inputText').addEventListener('keydown', (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
         lastTranslatedText = '';
         handleTranslate();
       }
     });
- 
+
     window.addEventListener('load', () => {
       showMessage('準備完了！自動翻訳がONになっています', 'info', '✨');
     });
   </script>
 </body>
 </html>
- 
