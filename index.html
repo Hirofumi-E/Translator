@@ -462,6 +462,14 @@
         <div class="flex-spacer"></div>
 
         <div class="auto-translate-toggle">
+          <label class="toggle-label">翻訳エンジン</label>
+          <select id="translationEngine" class="language-select" onchange="onEngineChange()">
+            <option value="online">🌐 オンライン (Google翻訳)</option>
+            <option value="local">💻 ローカルAI (実験的)</option>
+          </select>
+        </div>
+
+        <div class="auto-translate-toggle">
           <label class="toggle-label">自動翻訳</label>
           <button class="toggle-switch active" id="autoTranslateToggle" onclick="toggleAutoTranslate()"></button>
         </div>
@@ -498,7 +506,8 @@
       <strong>✨ 特徴:</strong> 完全無料 • 自動翻訳 • 英文添削 • インストール不要<br>
       <strong>💡 使い方:</strong> テキストを入力すると自動で翻訳されます。「Ctrl+Enter」で手動翻訳も可能です。<br>
       <strong>📝 英文添削:</strong> 英語のテキスト（入力または翻訳結果）がある時、「英文を添削する」ボタンで文法・表現チェックができます。<br>
-      <strong>🔒 プライバシー:</strong> 翻訳エンジンはGoogle翻訳、添削はLanguageToolを使用しています。
+      <strong>💻 ローカルAI翻訳:</strong> 翻訳エンジンを「ローカルAI」にすると、AIモデル（約100〜300MB・初回のみダウンロード）をブラウザにキャッシュし、以降は完全オフライン・ローカル処理で翻訳します。<br>
+      <strong>🔒 プライバシー:</strong> オンライン翻訳時はGoogle翻訳・添削はLanguageToolを使用。ローカルAIモード時はデータが外部に送信されません。
     </div>
   </div>
 
@@ -507,6 +516,88 @@
     let autoTranslateEnabled = true;
     let translateTimeout = null;
     let lastTranslatedText = '';
+    let translationEngine = 'online';
+
+    // ===== ローカルAI翻訳（Transformers.js） =====
+    let transformersModule = null;
+    const localTranslators = {};
+
+    const LOCAL_MODEL_MAP = {
+      'en-ja': 'Xenova/opus-mt-en-jap',
+      'ja-en': 'Xenova/opus-mt-ja-en'
+    };
+
+    async function loadTransformersModule() {
+      if (!transformersModule) {
+        showMessage('ライブラリを読み込み中...', 'info', '⏳');
+        transformersModule = await import('https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2');
+      }
+      return transformersModule;
+    }
+
+    async function getLocalTranslator(sourceLang, targetLang) {
+      const key = `${sourceLang}-${targetLang}`;
+
+      if (localTranslators[key]) {
+        return localTranslators[key];
+      }
+
+      const modelName = LOCAL_MODEL_MAP[key];
+      if (!modelName) {
+        throw new Error('この言語ペアはローカルAI翻訳に対応していません');
+      }
+
+      const { pipeline } = await loadTransformersModule();
+
+      const translator = await pipeline('translation', modelName, {
+        progress_callback: (data) => {
+          if (data.status === 'progress' && typeof data.progress === 'number') {
+            const percent = Math.round(data.progress);
+            showMessage(`モデルをダウンロード中... ${percent}%（初回のみ）`, 'info', '⬇');
+          } else if (data.status === 'ready') {
+            showMessage('モデルの準備が完了しました', 'success', '✓');
+          }
+        }
+      });
+
+      localTranslators[key] = translator;
+      return translator;
+    }
+
+    async function translateLocally(text, sourceLang, targetLang) {
+      try {
+        const translator = await getLocalTranslator(sourceLang, targetLang);
+        const output = await translator(text);
+        const translation = (output && output[0] && output[0].translation_text) || '';
+
+        if (!translation) {
+          throw new Error('翻訳結果が空でした');
+        }
+
+        return { success: true, translation };
+      } catch (error) {
+        console.error('ローカルAI翻訳エラー:', error);
+        return {
+          success: false,
+          error: error.message,
+          translation: text
+        };
+      }
+    }
+
+    function onEngineChange() {
+      const select = document.getElementById('translationEngine');
+      translationEngine = select.value;
+
+      if (translationEngine === 'local') {
+        showMessage('ローカルAIモードに切り替えました。初回翻訳時にモデルをダウンロードします', 'info', '💻');
+      } else {
+        showMessage('オンライン翻訳（Google翻訳）に切り替えました', 'info', '🌐');
+      }
+
+      lastTranslatedText = '';
+      scheduleTranslate();
+    }
 
     function detectLanguage(text) {
       const japaneseRegex = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF\u3400-\u4DBF]/g;
@@ -565,7 +656,9 @@
           }
         }
 
-        const result = await translateWithAPI(inputText, sourceLang, actualTargetLang);
+        const result = translationEngine === 'local'
+          ? await translateLocally(inputText, sourceLang, actualTargetLang)
+          : await translateWithAPI(inputText, sourceLang, actualTargetLang);
 
         if (result.success) {
           document.getElementById('outputText').value = result.translation;
@@ -775,6 +868,11 @@
       statusText.textContent = message;
       statusIcon.textContent = icon;
       messageEl.className = `status-message show ${type}`;
+
+      // ダウンロード進捗表示中は自動で消さない
+      if (icon === '⬇') {
+        return;
+      }
 
       setTimeout(() => {
         messageEl.classList.remove('show');
