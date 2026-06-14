@@ -4,12 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>無料翻訳アプリ - 高精度英日翻訳</title>
-  <meta name="description" content="Google翻訳とMyMemoryを比較できる完全無料の翻訳アプリ。逆翻訳検証、複数行翻訳、英文添削機能付き。">
-  <meta name="theme-color" content="#5366ff">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="翻訳">
-  <link rel="manifest" href="./manifest.json">
   <style>
     * {
       margin: 0;
@@ -1600,15 +1594,6 @@
         handleTranslate();
       }
     });
-
-    // Service Worker登録
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./service-worker.js').then(registration => {
-        console.log('Service Worker登録成功:', registration);
-      }).catch(error => {
-        console.log('Service Worker登録失敗:', error);
-      });
-    }
   </script>
 </body>
 </html>
