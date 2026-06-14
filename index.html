@@ -1294,9 +1294,75 @@
         return;
       }
 
+      // 日本語の場合はVoicevox、英語はWeb Speech APIを使用
+      if (targetLang === 'ja') {
+        speakWithVoicevox(text);
+      } else {
+        speakWithWebSpeech(text, 'en-US');
+      }
+    }
+
+    async function speakWithVoicevox(text) {
+      try {
+        showMessage('音声を読み込み中...', 'info', '⏳');
+
+        // ステップ1: 音声クエリを取得
+        const queryResponse = await fetch('https://api.voicevox.dev/audio_query?text=' + encodeURIComponent(text) + '&speaker=1', {
+          method: 'POST'
+        });
+
+        if (!queryResponse.ok) {
+          throw new Error('音声クエリの取得に失敗しました');
+        }
+
+        const audioQuery = await queryResponse.json();
+
+        // ステップ2: 音声を合成
+        const synthesisResponse = await fetch('https://api.voicevox.dev/synthesis?speaker=1', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(audioQuery)
+        });
+
+        if (!synthesisResponse.ok) {
+          throw new Error('音声の合成に失敗しました');
+        }
+
+        // 音声をBlob形式で取得
+        const audioBlob = await synthesisResponse.blob();
+        const audioUrl = URL.createObjectURL(audioBlob);
+
+        // 音声を再生
+        const audio = new Audio(audioUrl);
+        audio.play().then(() => {
+          showMessage('再生中...', 'info', '🔊');
+        }).catch(error => {
+          console.error('再生エラー:', error);
+          showMessage('再生に失敗しました', 'error', '✗');
+        });
+
+        // 再生終了時にURLをクリーンアップ
+        audio.onended = () => {
+          URL.revokeObjectURL(audioUrl);
+        };
+      } catch (error) {
+        console.error('Voicevox エラー:', error);
+        showMessage('音声再生に失敗しました。別の方法を試してください。', 'error', '✗');
+        
+        // フォールバック: Web Speech APIを使用
+        console.log('フォールバック: Web Speech APIを使用します');
+        speakWithWebSpeech(text, 'ja-JP');
+      }
+    }
+
+    function speakWithWebSpeech(text, lang) {
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = targetLang === 'ja' ? 'ja-JP' : 'en-US';
+      utterance.lang = lang;
       utterance.rate = 0.9;
+      utterance.pitch = 1;
+      utterance.volume = 1;
 
       speechSynthesis.cancel();
       speechSynthesis.speak(utterance);
