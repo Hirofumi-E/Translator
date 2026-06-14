@@ -317,6 +317,29 @@
       border-color: var(--primary);
     }
 
+    .clear-btn {
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      border: 1px solid var(--border);
+      background: var(--bg-light);
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-secondary);
+    }
+
+    .clear-btn:hover {
+      background: var(--danger);
+      color: white;
+      border-color: var(--danger);
+    }
+
     .action-buttons {
       display: flex;
       gap: 12px;
@@ -773,7 +796,10 @@
       <!-- 通常モード -->
       <div id="normalMode" class="translation-section">
         <div class="input-area">
-          <label class="column-label">入力テキスト</label>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <label class="column-label">入力テキスト</label>
+            <button class="clear-btn" onclick="clearInput()" title="テキストをクリア">✕</button>
+          </div>
           <textarea id="inputText" placeholder="翻訳したいテキストをここに貼り付けてください..." oninput="scheduleTranslate()"></textarea>
         </div>
 
@@ -871,12 +897,6 @@
         </div>
       </div>
     </div>
-
-    <div class="footer">
-      <strong>✨ 特徴:</strong> 完全無料 • Google翻訳とMyMemory比較 • 逆翻訳検証 • 複数行一括翻訳 • 英文添削 • 翻訳履歴<br>
-      <strong>💡 通常モード:</strong> テキストを入力して2つのエンジン結果を比較。逆翻訳で意味が保たれているか確認できます。<br>
-      <strong>📋 複数行モード:</strong> 複数行を一度に翻訳。結果をCSVでダウンロードも可能です。
-    </div>
   </div>
 
   <script>
@@ -933,6 +953,16 @@
       translateTimeout = setTimeout(() => {
         handleTranslate();
       }, 500);
+    }
+
+    function clearInput() {
+      document.getElementById('inputText').value = '';
+      document.getElementById('inputText').focus();
+      clearResults();
+      document.getElementById('backTranslationSection').classList.add('hidden');
+      document.getElementById('grammarResults').classList.remove('show');
+      lastTranslatedText = '';
+      showMessage('テキストをクリアしました', 'success', '✓');
     }
 
     async function handleTranslate() {
