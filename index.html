@@ -67,6 +67,34 @@
       padding: 40px;
     }
 
+    .mode-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 30px;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .mode-tab {
+      padding: 12px 20px;
+      border: none;
+      background: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      border-bottom: 3px solid transparent;
+      transition: all 0.3s ease;
+    }
+
+    .mode-tab.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+
+    .mode-tab:hover {
+      color: var(--primary);
+    }
+
     .controls {
       display: flex;
       gap: 12px;
@@ -287,6 +315,118 @@
       background: var(--primary);
       color: white;
       border-color: var(--primary);
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .action-btn {
+      padding: 12px 24px;
+      border: 2px solid var(--border);
+      background: var(--bg-white);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .action-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .action-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .back-translation-result {
+      border: 2px solid var(--success);
+      border-radius: 8px;
+      padding: 16px;
+      background: #f0fdf4;
+      margin-bottom: 20px;
+    }
+
+    .back-translation-title {
+      font-weight: 600;
+      color: var(--success);
+      margin-bottom: 12px;
+      font-size: 13px;
+    }
+
+    .back-translation-comparison {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .back-translation-item {
+      padding: 12px;
+      background: white;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+
+    .back-translation-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .back-translation-text {
+      color: var(--text-primary);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .back-translation-match {
+      margin-top: 12px;
+      padding: 8px;
+      background: var(--success);
+      color: white;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .batch-results {
+      margin-bottom: 20px;
+    }
+
+    .batch-table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .batch-table th {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 12px;
+      text-align: left;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .batch-table td {
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+
+    .batch-table tr:hover {
+      background: var(--bg-light);
     }
 
     .status-message {
@@ -535,6 +675,10 @@
       color: var(--text-primary);
     }
 
+    .hidden {
+      display: none;
+    }
+
     @media (max-width: 768px) {
       .results-grid {
         grid-template-columns: 1fr;
@@ -567,6 +711,10 @@
       textarea {
         min-height: 200px;
       }
+
+      .back-translation-comparison {
+        grid-template-columns: 1fr;
+      }
     }
 
     @media (prefers-color-scheme: dark) {
@@ -584,13 +732,18 @@
   <div class="container">
     <div class="header">
       <h1>🌍 無料翻訳アプリ</h1>
-      <p>完全無料 • 複数エンジン比較 • インストール不要</p>
+      <p>完全無料 • 複数エンジン比較 • 逆翻訳検証 • 一括翻訳</p>
     </div>
 
     <div class="content">
       <div id="statusMessage" class="status-message">
         <div class="status-icon">✓</div>
         <span id="statusText">完了しました</span>
+      </div>
+
+      <div class="mode-tabs">
+        <button class="mode-tab active" onclick="switchMode('normal')">通常モード</button>
+        <button class="mode-tab" onclick="switchMode('batch')">複数行翻訳</button>
       </div>
 
       <div class="controls">
@@ -611,13 +764,14 @@
 
         <div class="flex-spacer"></div>
 
-        <div class="auto-translate-toggle">
+        <div class="auto-translate-toggle" id="autoToggle">
           <label class="toggle-label">自動翻訳</label>
           <button class="toggle-switch active" id="autoTranslateToggle" onclick="toggleAutoTranslate()"></button>
         </div>
       </div>
 
-      <div class="translation-section">
+      <!-- 通常モード -->
+      <div id="normalMode" class="translation-section">
         <div class="input-area">
           <label class="column-label">入力テキスト</label>
           <textarea id="inputText" placeholder="翻訳したいテキストをここに貼り付けてください..." oninput="scheduleTranslate()"></textarea>
@@ -649,16 +803,63 @@
             </div>
           </div>
         </div>
+
+        <div class="action-buttons">
+          <button class="action-btn" onclick="checkEnglish()" id="checkBtn">📝 英文を添削する</button>
+          <button class="action-btn" onclick="backTranslate()" id="backBtn">🔄 逆翻訳検証</button>
+        </div>
+
+        <div id="backTranslationSection" class="back-translation-result hidden">
+          <div class="back-translation-title">🔄 逆翻訳検証結果</div>
+          <div class="back-translation-comparison">
+            <div class="back-translation-item">
+              <div class="back-translation-label">元のテキスト</div>
+              <div class="back-translation-text" id="originalText"></div>
+            </div>
+            <div class="back-translation-item">
+              <div class="back-translation-label">逆翻訳結果</div>
+              <div class="back-translation-text" id="backTranslatedText"></div>
+            </div>
+          </div>
+          <div class="back-translation-match" id="matchPercentage"></div>
+        </div>
+
+        <div class="grammar-results" id="grammarResults">
+          <div class="grammar-results-title">添削結果</div>
+          <div id="grammarList"></div>
+        </div>
       </div>
 
-      <div class="check-section">
-        <button class="check-btn" onclick="checkEnglish()" id="checkBtn">📝 英文を添削する</button>
+      <!-- 複数行モード -->
+      <div id="batchMode" class="translation-section hidden">
+        <div class="input-area">
+          <label class="column-label">複数行テキスト（1行ずつ翻訳されます）</label>
+          <textarea id="batchInputText" placeholder="複数行を貼り付けてください。&#10;各行が個別に翻訳されます。" oninput="updateBatchPreview()"></textarea>
+        </div>
+
+        <div class="action-buttons">
+          <button class="action-btn" onclick="doBatchTranslation()" id="batchTranslateBtn">🚀 翻訳実行</button>
+          <button class="action-btn" onclick="downloadBatchCSV()" id="downloadBtn" disabled>📥 CSVダウンロード</button>
+        </div>
+
+        <div id="batchResultsSection" class="batch-results hidden">
+          <label class="column-label">翻訳結果</label>
+          <table class="batch-table">
+            <thead>
+              <tr>
+                <th>行番号</th>
+                <th>元のテキスト</th>
+                <th>Google翻訳</th>
+                <th>MyMemory</th>
+              </tr>
+            </thead>
+            <tbody id="batchResultsTable">
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      <div class="grammar-results" id="grammarResults">
-        <div class="grammar-results-title">添削結果</div>
-        <div id="grammarList"></div>
-      </div>
+      <div class="check-section" id="checkSection"></div>
 
       <div class="history-section">
         <div class="history-title">
@@ -672,24 +873,42 @@
     </div>
 
     <div class="footer">
-      <strong>✨ 特徴:</strong> 完全無料 • Google翻訳とMyMemoryを比較 • 英文添削 • 翻訳履歴 • 音声読み上げ<br>
-      <strong>💡 使い方:</strong> テキストを入力すると、Google翻訳とMyMemoryの2つの結果を並べて比較できます。最適な訳を選べます。<br>
-      <strong>🔒 プライバシー:</strong> 翻訳エンジンは無料APIを使用。データは外部に送信されますが、個人情報は含まれません。
+      <strong>✨ 特徴:</strong> 完全無料 • Google翻訳とMyMemory比較 • 逆翻訳検証 • 複数行一括翻訳 • 英文添削 • 翻訳履歴<br>
+      <strong>💡 通常モード:</strong> テキストを入力して2つのエンジン結果を比較。逆翻訳で意味が保たれているか確認できます。<br>
+      <strong>📋 複数行モード:</strong> 複数行を一度に翻訳。結果をCSVでダウンロードも可能です。
     </div>
   </div>
 
   <script>
+    let currentMode = 'normal';
     let isTranslating = false;
     let autoTranslateEnabled = true;
     let translateTimeout = null;
     let lastTranslatedText = '';
     let translationHistory = [];
     let lastResults = {};
+    let batchResults = [];
 
     window.addEventListener('load', () => {
       loadHistory();
       showMessage('準備完了！自動翻訳がONになっています', 'info', '✨');
     });
+
+    function switchMode(mode) {
+      currentMode = mode;
+      document.querySelectorAll('.mode-tab').forEach(tab => tab.classList.remove('active'));
+      event.target.classList.add('active');
+      
+      document.getElementById('normalMode').classList.toggle('hidden', mode !== 'normal');
+      document.getElementById('batchMode').classList.toggle('hidden', mode !== 'batch');
+      document.getElementById('autoToggle').classList.toggle('hidden', mode !== 'normal');
+
+      if (mode === 'normal') {
+        showMessage('通常モードに切り替えました', 'info', '🔄');
+      } else {
+        showMessage('複数行モードに切り替えました', 'info', '🔄');
+      }
+    }
 
     function detectLanguage(text) {
       const japaneseRegex = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF\u3400-\u4DBF]/g;
@@ -705,7 +924,7 @@
     }
 
     function scheduleTranslate() {
-      if (!autoTranslateEnabled) return;
+      if (currentMode !== 'normal' || !autoTranslateEnabled) return;
 
       if (translateTimeout) {
         clearTimeout(translateTimeout);
@@ -747,7 +966,6 @@
           }
         }
 
-        // 2つのAPIを並行実行
         const [googleResult, memoryResult] = await Promise.all([
           translateGoogle(inputText, sourceLang, actualTargetLang),
           translateMemory(inputText, sourceLang, actualTargetLang)
@@ -761,7 +979,6 @@
         displayResults(googleResult, memoryResult);
         lastTranslatedText = inputText;
         
-        // 最初の成功した訳を履歴に追加
         if (googleResult.success) {
           addToHistory(inputText, googleResult.translation);
         }
@@ -837,6 +1054,184 @@
       document.getElementById('googleResult').innerHTML = '<div class="result-loading">翻訳待機中...</div>';
       document.getElementById('memoryResult').innerHTML = '<div class="result-loading">翻訳待機中...</div>';
       lastResults = {};
+    }
+
+    async function backTranslate() {
+      const inputText = document.getElementById('inputText').value.trim();
+      const sourceLanguage = document.getElementById('sourceLang').value;
+      const targetLanguage = document.getElementById('targetLang').value;
+
+      if (!inputText || !lastResults.google) {
+        showMessage('翻訳結果がありません', 'error', '⚠');
+        return;
+      }
+
+      let sourceLang = sourceLanguage;
+      let actualTargetLang = targetLanguage;
+
+      if (sourceLanguage === 'auto') {
+        sourceLang = detectLanguage(inputText);
+        if (sourceLang === targetLanguage) {
+          actualTargetLang = (sourceLang === 'ja') ? 'en' : 'ja';
+        }
+      }
+
+      const reverseLang = actualTargetLang;
+      const reverseTargetLang = sourceLang;
+
+      try {
+        const backResult = await translateGoogle(lastResults.google, reverseLang, reverseTargetLang);
+
+        if (backResult.success) {
+          const originalText = inputText;
+          const backTranslatedText = backResult.translation;
+          const similarity = calculateSimilarity(originalText, backTranslatedText);
+
+          document.getElementById('originalText').textContent = originalText;
+          document.getElementById('backTranslatedText').textContent = backTranslatedText;
+          document.getElementById('matchPercentage').textContent = `一致度: ${similarity}%`;
+          document.getElementById('backTranslationSection').classList.remove('hidden');
+
+          showMessage('逆翻訳検証が完了しました', 'success', '✓');
+        }
+      } catch (error) {
+        showMessage('逆翻訳に失敗しました', 'error', '✗');
+      }
+    }
+
+    function calculateSimilarity(str1, str2) {
+      const longer = str1.length > str2.length ? str1 : str2;
+      const shorter = str1.length > str2.length ? str2 : str1;
+
+      if (longer.length === 0) return 100;
+
+      const editDistance = levenshteinDistance(longer.toLowerCase(), shorter.toLowerCase());
+      const similarity = ((longer.length - editDistance) / longer.length) * 100;
+
+      return Math.round(similarity);
+    }
+
+    function levenshteinDistance(str1, str2) {
+      const matrix = [];
+
+      for (let i = 0; i <= str2.length; i++) {
+        matrix[i] = [i];
+      }
+
+      for (let j = 0; j <= str1.length; j++) {
+        matrix[0][j] = j;
+      }
+
+      for (let i = 1; i <= str2.length; i++) {
+        for (let j = 1; j <= str1.length; j++) {
+          if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
+            matrix[i][j] = matrix[i - 1][j - 1];
+          } else {
+            matrix[i][j] = Math.min(
+              matrix[i - 1][j - 1] + 1,
+              matrix[i][j - 1] + 1,
+              matrix[i - 1][j] + 1
+            );
+          }
+        }
+      }
+
+      return matrix[str2.length][str1.length];
+    }
+
+    function updateBatchPreview() {
+      const text = document.getElementById('batchInputText').value.trim();
+      const lines = text.split('\n').filter(line => line.trim().length > 0);
+      document.getElementById('downloadBtn').disabled = lines.length === 0;
+    }
+
+    async function doBatchTranslation() {
+      const text = document.getElementById('batchInputText').value.trim();
+      const sourceLanguage = document.getElementById('sourceLang').value;
+      const targetLanguage = document.getElementById('targetLang').value;
+
+      const lines = text.split('\n').filter(line => line.trim().length > 0);
+
+      if (lines.length === 0) {
+        showMessage('テキストを入力してください', 'error', '⚠');
+        return;
+      }
+
+      document.getElementById('batchTranslateBtn').disabled = true;
+      document.getElementById('batchTranslateBtn').textContent = '翻訳中...';
+
+      try {
+        let sourceLang = sourceLanguage;
+        let actualTargetLang = targetLanguage;
+
+        if (sourceLanguage === 'auto') {
+          sourceLang = detectLanguage(lines[0]);
+          if (sourceLang === targetLanguage) {
+            actualTargetLang = (sourceLang === 'ja') ? 'en' : 'ja';
+          }
+        }
+
+        batchResults = [];
+
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i].trim();
+          const [googleResult, memoryResult] = await Promise.all([
+            translateGoogle(line, sourceLang, actualTargetLang),
+            translateMemory(line, sourceLang, actualTargetLang)
+          ]);
+
+          batchResults.push({
+            lineNumber: i + 1,
+            original: line,
+            google: googleResult.translation,
+            memory: memoryResult.translation
+          });
+        }
+
+        displayBatchResults();
+        document.getElementById('downloadBtn').disabled = false;
+        showMessage(`${lines.length}行の翻訳が完了しました`, 'success', '✓');
+      } catch (error) {
+        console.error('一括翻訳エラー:', error);
+        showMessage('翻訳中にエラーが発生しました', 'error', '✗');
+      } finally {
+        document.getElementById('batchTranslateBtn').disabled = false;
+        document.getElementById('batchTranslateBtn').textContent = '🚀 翻訳実行';
+      }
+    }
+
+    function displayBatchResults() {
+      const tbody = document.getElementById('batchResultsTable');
+      tbody.innerHTML = batchResults.map(result => `
+        <tr>
+          <td>${result.lineNumber}</td>
+          <td>${escapeHtml(result.original)}</td>
+          <td>${escapeHtml(result.google)}</td>
+          <td>${escapeHtml(result.memory)}</td>
+        </tr>
+      `).join('');
+
+      document.getElementById('batchResultsSection').classList.remove('hidden');
+    }
+
+    function downloadBatchCSV() {
+      if (batchResults.length === 0) {
+        showMessage('翻訳結果がありません', 'error', '⚠');
+        return;
+      }
+
+      const csv = [
+        ['行番号', '元のテキスト', 'Google翻訳', 'MyMemory'],
+        ...batchResults.map(r => [r.lineNumber, r.original, r.google, r.memory])
+      ].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `translation_${new Date().getTime()}.csv`;
+      link.click();
+
+      showMessage('CSVをダウンロードしました', 'success', '✓');
     }
 
     function copyResult(engine) {
