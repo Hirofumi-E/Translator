@@ -36,7 +36,7 @@
 
     .container {
       width: 100%;
-      max-width: 1400px;
+      max-width: 1200px;
       background: var(--bg-white);
       border-radius: 16px;
       box-shadow: var(--shadow), 0 20px 40px rgba(0, 0, 0, 0.15);
@@ -237,14 +237,6 @@
       color: white;
       font-weight: 600;
       font-size: 13px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .result-status {
-      font-size: 11px;
-      opacity: 0.8;
     }
 
     .result-body {
@@ -592,7 +584,7 @@
   <div class="container">
     <div class="header">
       <h1>🌍 無料翻訳アプリ</h1>
-      <p>完全無料 • 複数エンジン • インストール不要</p>
+      <p>完全無料 • 複数エンジン比較 • インストール不要</p>
     </div>
 
     <div class="content">
@@ -655,17 +647,6 @@
                 <button class="btn" onclick="speakResult('memory')">🔊</button>
               </div>
             </div>
-
-            <div class="result-card">
-              <div class="result-header">🌍 LibreTranslate</div>
-              <div class="result-body" id="libreResult">
-                <div class="result-loading">翻訳待機中...</div>
-              </div>
-              <div class="result-buttons">
-                <button class="btn" onclick="copyResult('libre')">📋 コピー</button>
-                <button class="btn" onclick="speakResult('libre')">🔊</button>
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -691,9 +672,9 @@
     </div>
 
     <div class="footer">
-      <strong>✨ 特徴:</strong> 完全無料 • 複数エンジン比較 • 英文添削 • 翻訳履歴 • 音声読み上げ<br>
-      <strong>💡 使い方:</strong> テキストを入力すると、Google翻訳・MyMemory・LibreTranslateの3つの結果を並べて比較できます。最適な訳を選べます。<br>
-      <strong>🔒 プライバシー:</strong> 翻訳エンジンは複数の無料APIを使用。すべて外部に送信されますが、個人情報は含まれません。
+      <strong>✨ 特徴:</strong> 完全無料 • Google翻訳とMyMemoryを比較 • 英文添削 • 翻訳履歴 • 音声読み上げ<br>
+      <strong>💡 使い方:</strong> テキストを入力すると、Google翻訳とMyMemoryの2つの結果を並べて比較できます。最適な訳を選べます。<br>
+      <strong>🔒 プライバシー:</strong> 翻訳エンジンは無料APIを使用。データは外部に送信されますが、個人情報は含まれません。
     </div>
   </div>
 
@@ -766,20 +747,18 @@
           }
         }
 
-        // 3つのAPIを並行実行
-        const [googleResult, memoryResult, libreResult] = await Promise.all([
+        // 2つのAPIを並行実行
+        const [googleResult, memoryResult] = await Promise.all([
           translateGoogle(inputText, sourceLang, actualTargetLang),
-          translateMemory(inputText, sourceLang, actualTargetLang),
-          translateLibre(inputText, sourceLang, actualTargetLang)
+          translateMemory(inputText, sourceLang, actualTargetLang)
         ]);
 
         lastResults = {
           google: googleResult.translation,
-          memory: memoryResult.translation,
-          libre: libreResult.translation
+          memory: memoryResult.translation
         };
 
-        displayResults(googleResult, memoryResult, libreResult);
+        displayResults(googleResult, memoryResult);
         lastTranslatedText = inputText;
         
         // 最初の成功した訳を履歴に追加
@@ -839,37 +818,9 @@
       }
     }
 
-    async function translateLibre(text, sourceLang, targetLang) {
-      try {
-        const langMap = { 'ja': 'ja', 'en': 'en' };
-        const response = await fetch('https://libre.solopine.com/translate', {
-          method: 'POST',
-          body: JSON.stringify({
-            q: text,
-            source: langMap[sourceLang] || 'en',
-            target: langMap[targetLang] || 'ja'
-          }),
-          headers: { 'Content-Type': 'application/json' }
-        });
-
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-        const data = await response.json();
-
-        if (data.translatedText) {
-          return { success: true, translation: data.translatedText };
-        }
-
-        throw new Error('翻訳結果なし');
-      } catch (error) {
-        return { success: false, translation: '', error: error.message };
-      }
-    }
-
-    function displayResults(googleResult, memoryResult, libreResult) {
+    function displayResults(googleResult, memoryResult) {
       displayResult('google', googleResult);
       displayResult('memory', memoryResult);
-      displayResult('libre', libreResult);
     }
 
     function displayResult(key, result) {
@@ -885,7 +836,6 @@
     function clearResults() {
       document.getElementById('googleResult').innerHTML = '<div class="result-loading">翻訳待機中...</div>';
       document.getElementById('memoryResult').innerHTML = '<div class="result-loading">翻訳待機中...</div>';
-      document.getElementById('libreResult').innerHTML = '<div class="result-loading">翻訳待機中...</div>';
       lastResults = {};
     }
 
