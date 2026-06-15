@@ -771,18 +771,8 @@
 
       <div class="controls">
         <div class="language-group">
-          <select id="sourceLang" class="language-select" onchange="scheduleTranslate()">
-            <option value="auto">言語を自動判定</option>
-            <option value="ja">日本語</option>
-            <option value="en">English</option>
-          </select>
-          
           <button class="swap-btn" onclick="swapLanguages()" title="言語を入れ替え">⇄</button>
-          
-          <select id="targetLang" class="language-select" onchange="scheduleTranslate()">
-            <option value="ja">日本語に翻訳</option>
-            <option value="en">English に翻訳</option>
-          </select>
+          <span style="font-size: 14px; font-weight: 600; color: var(--text-secondary);">言語を自動判定 • 自動翻訳</span>
         </div>
 
         <div class="flex-spacer"></div>
@@ -908,6 +898,7 @@
     let translationHistory = [];
     let lastResults = {};
     let batchResults = [];
+    let forceReverseLanguage = false; // 言語反転フラグ
 
     window.addEventListener('load', () => {
       loadHistory();
@@ -967,8 +958,6 @@
 
     async function handleTranslate() {
       const inputText = document.getElementById('inputText').value.trim();
-      const sourceLanguage = document.getElementById('sourceLang').value;
-      const targetLanguage = document.getElementById('targetLang').value;
 
       if (!inputText) {
         clearResults();
@@ -979,26 +968,22 @@
         return;
       }
 
-      if (sourceLanguage !== 'auto' && sourceLanguage === targetLanguage) {
-        return;
-      }
-
       isTranslating = true;
 
       try {
-        let sourceLang = sourceLanguage;
-        let actualTargetLang = targetLanguage;
+        let sourceLang = detectLanguage(inputText);
+        let targetLang = (sourceLang === 'ja') ? 'en' : 'ja';
 
-        if (sourceLanguage === 'auto') {
-          sourceLang = detectLanguage(inputText);
-          if (sourceLang === targetLanguage) {
-            actualTargetLang = (sourceLang === 'ja') ? 'en' : 'ja';
-          }
+        // 言語反転フラグが立っている場合は反転
+        if (forceReverseLanguage) {
+          const temp = sourceLang;
+          sourceLang = targetLang;
+          targetLang = temp;
         }
 
         const [googleResult, memoryResult] = await Promise.all([
-          translateGoogle(inputText, sourceLang, actualTargetLang),
-          translateMemory(inputText, sourceLang, actualTargetLang)
+          translateGoogle(inputText, sourceLang, targetLang),
+          translateMemory(inputText, sourceLang, targetLang)
         ]);
 
         lastResults = {
@@ -1088,25 +1073,22 @@
 
     async function backTranslate() {
       const inputText = document.getElementById('inputText').value.trim();
-      const sourceLanguage = document.getElementById('sourceLang').value;
-      const targetLanguage = document.getElementById('targetLang').value;
 
       if (!inputText || !lastResults.google) {
         showMessage('翻訳結果がありません', 'error', '⚠');
         return;
       }
 
-      let sourceLang = sourceLanguage;
-      let actualTargetLang = targetLanguage;
+      let sourceLang = detectLanguage(inputText);
+      let targetLang = (sourceLang === 'ja') ? 'en' : 'ja';
 
-      if (sourceLanguage === 'auto') {
-        sourceLang = detectLanguage(inputText);
-        if (sourceLang === targetLanguage) {
-          actualTargetLang = (sourceLang === 'ja') ? 'en' : 'ja';
-        }
+      if (forceReverseLanguage) {
+        const temp = sourceLang;
+        sourceLang = targetLang;
+        targetLang = temp;
       }
 
-      const reverseLang = actualTargetLang;
+      const reverseLang = targetLang;
       const reverseTargetLang = sourceLang;
 
       try {
@@ -1281,15 +1263,27 @@
 
     function speakResult(engine) {
       const text = lastResults[engine];
-      const targetLang = document.getElementById('targetLang').value;
+      const inputText = document.getElementById('inputText').value.trim();
 
       if (!text) {
         showMessage('読み上げるテキストがありません', 'error', '⚠');
         return;
       }
 
+      let sourceLang = detectLanguage(inputText);
+      let targetLang = (sourceLang === 'ja') ? 'en' : 'ja';
+
+      if (forceReverseLanguage) {
+        const temp = sourceLang;
+        sourceLang = targetLang;
+        targetLang = temp;
+      }
+
+      // 翻訳結果の言語を判定（targetLangが翻訳対象言語）
+      const resultLang = targetLang;
+
       // 日本語の場合はVoicevox、英語はWeb Speech APIを使用
-      if (targetLang === 'ja') {
+      if (resultLang === 'ja') {
         speakWithVoicevox(text);
       } else {
         speakWithWebSpeech(text, 'en-US');
@@ -1545,19 +1539,16 @@
     }
 
     function swapLanguages() {
-      const sourceLang = document.getElementById('sourceLang');
-      const targetLang = document.getElementById('targetLang');
-      const inputText = document.getElementById('inputText');
-
-      if (sourceLang.value !== 'auto') {
-        const tempLang = sourceLang.value;
-        sourceLang.value = targetLang.value;
-        targetLang.value = tempLang;
-      }
-
+      forceReverseLanguage = !forceReverseLanguage;
       lastTranslatedText = '';
       scheduleTranslate();
-      inputText.focus();
+      document.getElementById('inputText').focus();
+      
+      if (forceReverseLanguage) {
+        showMessage('言語を反転しました', 'info', '⇄');
+      } else {
+        showMessage('言語を元に戻しました', 'info', '⇄');
+      }
     }
 
     function toggleAutoTranslate() {
