@@ -867,7 +867,7 @@
         </div>
 
         <div>
-          <label class="column-label">翻訳結果（複数エンジン比較）</label>
+          <label class="column-label">翻訳結果</label>
           <div class="results-grid" id="resultsGrid">
             <div class="result-card">
               <div class="result-header">🌐 Google翻訳</div>
@@ -877,17 +877,6 @@
               <div class="result-buttons">
                 <button class="btn" onclick="copyResult('google')">📋 コピー</button>
                 <button class="btn" onclick="speakResult('google')">🔊</button>
-              </div>
-            </div>
-
-            <div class="result-card">
-              <div class="result-header">📚 MyMemory</div>
-              <div class="result-body" id="memoryResult">
-                <div class="result-loading">翻訳待機中...</div>
-              </div>
-              <div class="result-buttons">
-                <button class="btn" onclick="copyResult('memory')">📋 コピー</button>
-                <button class="btn" onclick="speakResult('memory')">🔊</button>
               </div>
             </div>
           </div>
@@ -1102,17 +1091,13 @@
           targetLang = temp;
         }
 
-        const [googleResult, memoryResult] = await Promise.all([
-          translateGoogle(inputText, sourceLang, targetLang),
-          translateMemory(inputText, sourceLang, targetLang)
-        ]);
+        const googleResult = await translateGoogle(inputText, sourceLang, targetLang);
 
         lastResults = {
-          google: googleResult.translation,
-          memory: memoryResult.translation
+          google: googleResult.translation
         };
 
-        displayResults(googleResult, memoryResult);
+        displayResults(googleResult);
         lastTranslatedText = inputText;
         
         if (googleResult.success) {
@@ -1148,32 +1133,8 @@
       }
     }
 
-    async function translateMemory(text, sourceLang, targetLang) {
-      try {
-        const langPair = `${sourceLang}|${targetLang}`;
-        const url = new URL('https://api.mymemory.translated.net/get');
-        url.searchParams.append('q', text);
-        url.searchParams.append('langpair', langPair);
-
-        const response = await fetch(url.toString());
-
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-        const data = await response.json();
-
-        if (data.responseStatus === 200 && data.responseData.translatedText) {
-          return { success: true, translation: data.responseData.translatedText };
-        }
-
-        throw new Error('翻訳結果なし');
-      } catch (error) {
-        return { success: false, translation: '', error: error.message };
-      }
-    }
-
-    function displayResults(googleResult, memoryResult) {
+    function displayResults(googleResult) {
       displayResult('google', googleResult);
-      displayResult('memory', memoryResult);
     }
 
     function displayResult(key, result) {
@@ -1188,7 +1149,6 @@
 
     function clearResults() {
       document.getElementById('googleResult').innerHTML = '<div class="result-loading">翻訳待機中...</div>';
-      document.getElementById('memoryResult').innerHTML = '<div class="result-loading">翻訳待機中...</div>';
       lastResults = {};
     }
 
@@ -1664,21 +1624,19 @@
       const currentInput = inputElement.value.trim();
 
       // 翻訳結果がない場合は何もしない
-      if (!lastResults.google && !lastResults.memory) {
+      if (!lastResults.google) {
         showMessage('翻訳結果がありません', 'error', '⚠');
         return;
       }
 
       // 翻訳結果を入力に設定
-      const selectedResult = lastResults.google || lastResults.memory;
-      inputElement.value = selectedResult;
+      inputElement.value = lastResults.google;
 
       // 元の入力を翻訳結果として表示
       lastResults.google = currentInput;
-      lastResults.memory = currentInput;
 
       // 表示を更新
-      displayResults({success: true, translation: currentInput}, {success: true, translation: currentInput});
+      displayResults({success: true, translation: currentInput});
 
       // 言語反転フラグを切り替え
       forceReverseLanguage = !forceReverseLanguage;
