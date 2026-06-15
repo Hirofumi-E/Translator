@@ -928,7 +928,6 @@
                 <th>行番号</th>
                 <th>元のテキスト</th>
                 <th>Google翻訳</th>
-                <th>MyMemory</th>
               </tr>
             </thead>
             <tbody id="batchResultsTable">
@@ -1268,16 +1267,12 @@
 
         for (let i = 0; i < lines.length; i++) {
           const line = lines[i].trim();
-          const [googleResult, memoryResult] = await Promise.all([
-            translateGoogle(line, sourceLang, actualTargetLang),
-            translateMemory(line, sourceLang, actualTargetLang)
-          ]);
+          const googleResult = await translateGoogle(line, sourceLang, actualTargetLang);
 
           batchResults.push({
             lineNumber: i + 1,
             original: line,
-            google: googleResult.translation,
-            memory: memoryResult.translation
+            google: googleResult.translation
           });
         }
 
@@ -1300,7 +1295,6 @@
           <td>${result.lineNumber}</td>
           <td>${escapeHtml(result.original)}</td>
           <td>${escapeHtml(result.google)}</td>
-          <td>${escapeHtml(result.memory)}</td>
         </tr>
       `).join('');
 
@@ -1314,8 +1308,8 @@
       }
 
       const csv = [
-        ['行番号', '元のテキスト', 'Google翻訳', 'MyMemory'],
-        ...batchResults.map(r => [r.lineNumber, r.original, r.google, r.memory])
+        ['行番号', '元のテキスト', 'Google翻訳'],
+        ...batchResults.map(r => [r.lineNumber, r.original, r.google])
       ].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
 
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
