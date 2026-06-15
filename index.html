@@ -1539,28 +1539,38 @@
     }
 
     function swapLanguages() {
-      forceReverseLanguage = !forceReverseLanguage;
-      
-      // 現在の翻訳結果を即座に入れ替え表示
-      if (lastResults.google && lastResults.memory) {
-        const temp = lastResults.google;
-        lastResults.google = lastResults.memory;
-        lastResults.memory = temp;
-        displayResults({success: true, translation: lastResults.google}, {success: true, translation: lastResults.memory});
+      const inputElement = document.getElementById('inputText');
+      const currentInput = inputElement.value.trim();
+
+      // 翻訳結果がない場合は何もしない
+      if (!lastResults.google && !lastResults.memory) {
+        showMessage('翻訳結果がありません', 'error', '⚠');
+        return;
       }
-      
-      // 新しい翻訳を即座に実行（scheduleTranslateではなく直接実行）
+
+      // 翻訳結果を入力に設定
+      const selectedResult = lastResults.google || lastResults.memory;
+      inputElement.value = selectedResult;
+
+      // 元の入力を翻訳結果として表示
+      lastResults.google = currentInput;
+      lastResults.memory = currentInput;
+
+      // 表示を更新
+      displayResults({success: true, translation: currentInput}, {success: true, translation: currentInput});
+
+      // 言語反転フラグを切り替え
+      forceReverseLanguage = !forceReverseLanguage;
+
+      // 新しい翻訳を即座に実行
       lastTranslatedText = '';
-      document.getElementById('inputText').focus();
-      
-      if (isTranslating) return; // 翻訳中は実行しない
-      
+      if (isTranslating) return;
       handleTranslate();
-      
+
       if (forceReverseLanguage) {
-        showMessage('言語を反転しました', 'info', '⇄');
+        showMessage('入力と翻訳結果を入れ替えました', 'info', '⇄');
       } else {
-        showMessage('言語を元に戻しました', 'info', '⇄');
+        showMessage('入力と翻訳結果を入れ替えました', 'info', '⇄');
       }
     }
 
