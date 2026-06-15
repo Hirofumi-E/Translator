@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>無料翻訳アプリ - 高精度英日翻訳</title>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.0.4/dist/tesseract.min.js"></script>
   <style>
     * {
       margin: 0;
@@ -338,6 +339,69 @@
       background: var(--danger);
       color: white;
       border-color: var(--danger);
+    }
+
+    .image-upload-section {
+      margin-bottom: 20px;
+      padding: 16px;
+      background: var(--bg-light);
+      border-radius: 8px;
+      border: 2px dashed var(--border);
+    }
+
+    .image-upload-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+      display: block;
+    }
+
+    #imageInput {
+      padding: 8px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      width: 100%;
+    }
+
+    .ocr-result {
+      display: none;
+      margin-top: 12px;
+      padding: 12px;
+      background: var(--bg-white);
+      border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+
+    .ocr-result.show {
+      display: block;
+    }
+
+    .ocr-result-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .ocr-result-text {
+      font-size: 13px;
+      color: var(--text-primary);
+      line-height: 1.6;
+      max-height: 150px;
+      overflow-y: auto;
+    }
+
+    .ocr-loading {
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 13px;
+      padding: 12px;
     }
 
     .action-buttons {
@@ -785,6 +849,15 @@
 
       <!-- 通常モード -->
       <div id="normalMode" class="translation-section">
+        <div class="image-upload-section">
+          <label class="image-upload-label">📷 画像から文字認識</label>
+          <input type="file" id="imageInput" accept="image/*" onchange="handleImageUpload(event)">
+          <div class="ocr-result" id="ocrResult">
+            <div class="ocr-result-label">認識されたテキスト</div>
+            <div class="ocr-result-text" id="ocrText"></div>
+          </div>
+        </div>
+
         <div class="input-area">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
             <label class="column-label">入力テキスト</label>
@@ -954,6 +1027,54 @@
       document.getElementById('grammarResults').classList.remove('show');
       lastTranslatedText = '';
       showMessage('テキストをクリアしました', 'success', '✓');
+    }
+
+    async function handleImageUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const imageSrc = e.target.result;
+        
+        // OCR処理中の表示
+        const ocrResult = document.getElementById('ocrResult');
+        const ocrText = document.getElementById('ocrText');
+        
+        ocrResult.classList.add('show');
+        ocrText.innerHTML = '<div class="ocr-loading">🔄 画像から文字を認識中...</div>';
+        
+        try {
+          // Tesseract.js で OCR 実行（日本語と英語に対応）
+          const { data: { text } } = await Tesseract.recognize(imageSrc, ['jpn', 'eng'], {
+            logger: m => console.log('OCR進捗:', m)
+          });
+
+          if (!text || text.trim().length === 0) {
+            ocrText.innerHTML = '<div style="color: var(--text-secondary);">テキストが見つかりませんでした</div>';
+            showMessage('画像から文字が読み取れませんでした', 'error', '⚠');
+            return;
+          }
+
+          // 認識されたテキストを表示
+          ocrText.textContent = text;
+
+          // 入力欄に自動入力
+          document.getElementById('inputText').value = text;
+          lastTranslatedText = '';
+
+          // 自動翻訳実行
+          handleTranslate();
+
+          showMessage('画像から文字を認識しました', 'success', '✓');
+        } catch (error) {
+          console.error('OCR エラー:', error);
+          ocrText.innerHTML = '<div style="color: var(--danger);">認識に失敗しました</div>';
+          showMessage('OCR処理に失敗しました', 'error', '✗');
+        }
+      };
+
+      reader.readAsDataURL(file);
     }
 
     async function handleTranslate() {
