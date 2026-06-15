@@ -1540,9 +1540,22 @@
 
     function swapLanguages() {
       forceReverseLanguage = !forceReverseLanguage;
+      
+      // 現在の翻訳結果を即座に入れ替え表示
+      if (lastResults.google && lastResults.memory) {
+        const temp = lastResults.google;
+        lastResults.google = lastResults.memory;
+        lastResults.memory = temp;
+        displayResults({success: true, translation: lastResults.google}, {success: true, translation: lastResults.memory});
+      }
+      
+      // 新しい翻訳を即座に実行（scheduleTranslateではなく直接実行）
       lastTranslatedText = '';
-      scheduleTranslate();
       document.getElementById('inputText').focus();
+      
+      if (isTranslating) return; // 翻訳中は実行しない
+      
+      handleTranslate();
       
       if (forceReverseLanguage) {
         showMessage('言語を反転しました', 'info', '⇄');
